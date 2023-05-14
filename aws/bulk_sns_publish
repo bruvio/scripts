@@ -89,10 +89,10 @@ def chunked_iterable(iterable, size):
     """
     it = iter(iterable)
     while True:
-        chunk = tuple(itertools.islice(it, size))
-        if not chunk:
+        if chunk := tuple(itertools.islice(it, size)):
+            yield chunk
+        else:
             break
-        yield chunk
 
 
 def get_batch_entries(path):

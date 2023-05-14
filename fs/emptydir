@@ -32,21 +32,15 @@ def delete_directory(d):
     # Was this the only entry in its parent directory?  Unwind one level
     # to see if we can delete the parent also.
     parent = os.path.dirname(d)
-    if can_be_deleted(parent):
-        return 1 + delete_directory(parent)
-    else:
-        return 1
+    return 1 + delete_directory(parent) if can_be_deleted(parent) else 1
 
 
 if __name__ == "__main__":
-    total_deleted = 0
-
-    for d, _, _ in os.walk("."):
-        if can_be_deleted(d):
-            total_deleted += delete_directory(d)
-
+    total_deleted = sum(
+        delete_directory(d) for d, _, _ in os.walk(".") if can_be_deleted(d)
+    )
     if total_deleted == 1:
-        print(termcolor.colored(f"1 directory deleted", "green"))
+        print(termcolor.colored("1 directory deleted", "green"))
     elif total_deleted > 0:
         print(
             termcolor.colored(

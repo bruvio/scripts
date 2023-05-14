@@ -88,10 +88,7 @@ def pprint_nested_tree(bucket, tree, folder_counts, parents=None):
     entries = sorted(tree.items())
 
     for i, (key, nested_tree) in enumerate(entries, start=1):
-        if parents:
-            full_path = f'{"/".join(parents)}/{key}'
-        else:
-            full_path = key
+        full_path = f'{"/".join(parents)}/{key}' if parents else key
         if isinstance(key, str):
             label = create_link_text(
                 url=f"https://eu-west-1.console.aws.amazon.com/s3/buckets/{bucket}?prefix={full_path}/&showversions=false",
@@ -118,14 +115,14 @@ def pprint_nested_tree(bucket, tree, folder_counts, parents=None):
             obj_count_line = None
 
         if i == len(entries):
-            lines.append("└── " + label)
+            lines.append(f"└── {label}")
 
             if obj_count_line is not None:
                 lines.append(obj_count_line)
 
             lines.extend(
                 [
-                    "    " + l
+                    f"    {l}"
                     for l in pprint_nested_tree(
                         bucket,
                         nested_tree,
@@ -135,14 +132,14 @@ def pprint_nested_tree(bucket, tree, folder_counts, parents=None):
                 ]
             )
         else:
-            lines.append("├── " + label)
+            lines.append(f"├── {label}")
 
             if obj_count_line is not None:
                 lines.append(obj_count_line)
 
             lines.extend(
                 [
-                    "│   " + l
+                    f"│   {l}"
                     for l in pprint_nested_tree(
                         bucket,
                         nested_tree,
@@ -197,36 +194,19 @@ def pprint_s3tree(*, bucket, tree):
 
     # Start by printing any objects that are in this folder.  Print up to
     # 4 objects, otherwise print 3 and then '...X other objects'
-    if len(tree.objects) == 4:
-        tree_object_count = 4
-    else:
-        tree_object_count = 3
-
+    tree_object_count = 4 if len(tree.objects) == 4 else 3
     for i, object_key in enumerate(sorted(tree.objects[:tree_object_count]), start=1):
-        if tree.folders or len(tree.objects) > i:
-            prefix_char = "├─"
-        else:
-            prefix_char = "└─"
-
+        prefix_char = "├─" if tree.folders or len(tree.objects) > i else "└─"
         lines.append(f"{prefix_char} {termcolor.colored(object_key, 'blue')}")
 
     if len(tree.objects) > tree_object_count:
-        if tree.folders:
-            prefix_char = "├─"
-        else:
-            prefix_char = "└─"
-
+        prefix_char = "├─" if tree.folders else "└─"
         extra_objects = f"...{len(tree.objects) - 3} other objects"
         lines.append(f"{prefix_char} {termcolor.colored(extra_objects, 'blue')}")
 
     for i, (folder_name, folder_tree) in enumerate(
         sorted(tree.folders.items()), start=1
     ):
-        if tree.path == "":
-            full_path = folder_name
-        else:
-            full_path = "/".join([tree.path, folder_name])
-
         if len(tree.folders) > i:
             folder_prefix_char = "├─"
             sub_prefix_char = "│   "
@@ -234,13 +214,13 @@ def pprint_s3tree(*, bucket, tree):
             folder_prefix_char = "└─"
             sub_prefix_char = "    "
 
+        full_path = (
+            folder_name
+            if tree.path == ""
+            else "/".join([tree.path, folder_name])
+        )
         lines.append(
-            folder_prefix_char
-            + " "
-            + create_link_text(
-                url=f"https://eu-west-1.console.aws.amazon.com/s3/buckets/{bucket}?prefix={full_path}/&showversions=false",
-                label=f"{folder_name}/",
-            )
+            f'{folder_prefix_char} {create_link_text(url=f"https://eu-west-1.console.aws.amazon.com/s3/buckets/{bucket}?prefix={full_path}/&showversions=false", label=f"{folder_name}/")}'
         )
         lines.extend(
             [

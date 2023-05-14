@@ -57,8 +57,7 @@ def guess_account(s3_identifier):
 
 
 def create_s3_session(s3_identifier):
-    account = guess_account(s3_identifier)
-    if account:
+    if account := guess_account(s3_identifier):
         return get_aws_session(role_arn=account["role_arn"])
     else:
         return boto3.Session()
