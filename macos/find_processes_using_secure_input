@@ -40,14 +40,10 @@ def find_dicts_in_tree(d):
     if isinstance(d, dict):
         yield d
         for dict_value in d.values():
-            for dv in find_dicts_in_tree(dict_value):
-                yield dv
+            yield from find_dicts_in_tree(dict_value)
     elif isinstance(d, list):
         for list_item in d:
-            for lv in find_dicts_in_tree(list_item):
-                yield lv
-    else:
-        pass
+            yield from find_dicts_in_tree(list_item)
 
 
 def executable_name(pid):
@@ -75,11 +71,11 @@ if __name__ == "__main__":
     except AttributeError:  # Python 2
         plist = plistlib.readPlistFromString(ioreg_output)
 
-    process_ids = set()
-    for d in find_dicts_in_tree(plist):
-        if "kCGSSessionSecureInputPID" in d:
-            process_ids.add(d["kCGSSessionSecureInputPID"])
-
+    process_ids = {
+        d["kCGSSessionSecureInputPID"]
+        for d in find_dicts_in_tree(plist)
+        if "kCGSSessionSecureInputPID" in d
+    }
     sorted_pids = [
         str(pid)
         for pid in sorted(int(p) for p in process_ids)

@@ -53,7 +53,7 @@ if __name__ == '__main__':
             # Add a bit of noise to filenames to avoid duplication
             while os.path.exists(f_dst):
                 name, ext = os.path.splitext(f)
-                f_dst = name + '__' + secrets.token_hex(3) + ext
+                f_dst = f'{name}__{secrets.token_hex(3)}{ext}'
 
             mv(src=f_src, dst=f_dst)
 
